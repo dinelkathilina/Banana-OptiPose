@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Tabs } from './components/Tabs';
@@ -19,8 +18,8 @@ const App: React.FC = () => {
   const activeTabData = useMemo(() => TABS.find(tab => tab.id === activeTab)!, [activeTab]);
 
   const handleGenerate = async () => {
-    if (!baseImage || !styleImage) {
-      setError('Please upload both a base image and a style/reference image.');
+    if (!baseImage || (activeTabData.uploader2Title && !styleImage)) {
+      setError('Please upload all required images.');
       return;
     }
     
@@ -49,7 +48,7 @@ const App: React.FC = () => {
     setIsLoading(false);
   }
 
-  const isGenerateDisabled = !baseImage || !styleImage || isLoading;
+  const isGenerateDisabled = isLoading || !baseImage || (activeTabData.uploader2Title && !styleImage);
 
   return (
     <div className="min-h-screen bg-brand-dark text-white font-sans antialiased">
@@ -59,17 +58,19 @@ const App: React.FC = () => {
           <Tabs tabs={TABS} activeTab={activeTab} onTabChange={handleTabChange} />
 
           <div className="mt-8 p-6 bg-brand-gray rounded-lg shadow-2xl">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className={`grid grid-cols-1 ${activeTabData.uploader2Title ? 'lg:grid-cols-2' : ''} gap-8`}>
               <ImageUploader
                 title={activeTabData.uploader1Title}
                 onFileSelect={setBaseImage}
                 key={`${activeTab}-1`}
               />
-              <ImageUploader
-                title={activeTabData.uploader2Title}
-                onFileSelect={setStyleImage}
-                key={`${activeTab}-2`}
-              />
+              {activeTabData.uploader2Title && (
+                <ImageUploader
+                  title={activeTabData.uploader2Title}
+                  onFileSelect={setStyleImage}
+                  key={`${activeTab}-2`}
+                />
+              )}
             </div>
 
             <div className="mt-8 text-center">

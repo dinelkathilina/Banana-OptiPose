@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Modality } from "@google/genai";
 import { UploadedFile } from "../types";
 
@@ -12,30 +11,34 @@ const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 export async function generateImage(
   baseImage: UploadedFile,
-  styleImage: UploadedFile,
+  styleImage: UploadedFile | null,
   prompt: string
 ): Promise<string> {
   try {
+    const parts: any[] = [
+      {
+        inlineData: {
+          data: baseImage.base64,
+          mimeType: baseImage.type,
+        },
+      },
+    ];
+
+    if (styleImage) {
+      parts.push({
+        inlineData: {
+          data: styleImage.base64,
+          mimeType: styleImage.type,
+        },
+      });
+    }
+
+    parts.push({ text: prompt });
+
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
-        parts: [
-          {
-            inlineData: {
-              data: baseImage.base64,
-              mimeType: baseImage.type,
-            },
-          },
-          {
-            inlineData: {
-              data: styleImage.base64,
-              mimeType: styleImage.type,
-            },
-          },
-          {
-            text: prompt,
-          },
-        ],
+        parts: parts,
       },
       config: {
         responseModalities: [Modality.IMAGE, Modality.TEXT],
