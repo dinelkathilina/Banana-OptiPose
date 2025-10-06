@@ -1,4 +1,4 @@
-import { GoogleGenAI, Modality } from "@google/genai";
+import { GoogleGenAI, Modality, Part } from "@google/genai";
 import { UploadedFile } from "../types";
 
 const API_KEY = process.env.API_KEY;
@@ -15,7 +15,7 @@ export async function generateImage(
   prompt: string
 ): Promise<string> {
   try {
-    const parts: any[] = [
+    const parts: Part[] = [
       {
         inlineData: {
           data: baseImage.base64,
@@ -37,9 +37,7 @@ export async function generateImage(
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
-      contents: {
-        parts: parts,
-      },
+      contents: parts,
       config: {
         responseModalities: [Modality.IMAGE, Modality.TEXT],
       },

@@ -3,7 +3,7 @@ import { Header } from './components/Header';
 import { Tabs } from './components/Tabs';
 import { ImageUploader } from './components/ImageUploader';
 import { OutputDisplay } from './components/OutputDisplay';
-import { TABS, PROMPTS } from './constants';
+import { TABS, PROMPTS, QUICK_POSE_PROMPTS, HANDS_ON_HIPS_IMAGE_B64 } from './constants';
 import { TabId, UploadedFile } from './types';
 import { generateImage } from './services/geminiService';
 
@@ -38,6 +38,27 @@ const App: React.FC = () => {
         prompt = prompt.replace('[PRODUCT NAME HERE]', productName);
       }
       const result = await generateImage(baseImage, styleImage, prompt);
+      setOutputImage(result);
+    } catch (err) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePoseButtonClick = async (prompt: string) => {
+    if (!baseImage) {
+      setError('Please upload a base image first.');
+      return;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+    setOutputImage(null);
+
+    try {
+      const result = await generateImage(baseImage, null, prompt);
       setOutputImage(result);
     } catch (err) {
       console.error(err);
@@ -82,6 +103,27 @@ const App: React.FC = () => {
               )}
             </div>
             
+            {activeTab === 'pose' && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold text-center text-gray-300 mb-4">Or Try a Quick Pose</h3>
+                <div className="flex justify-center gap-4">
+                  <div className="relative group">
+                    <button
+                      onClick={() => handlePoseButtonClick(QUICK_POSE_PROMPTS.HANDS_ON_HIPS)}
+                      disabled={!baseImage || isLoading}
+                      className="rounded-lg overflow-hidden border-2 border-transparent hover:border-brand-yellow focus:border-brand-yellow focus:outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-transparent"
+                      aria-label="Apply Hands on Hips pose"
+                    >
+                      <img src={HANDS_ON_HIPS_IMAGE_B64} alt="Man with hands on hips" className="w-32 h-40 object-cover" />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 flex items-center justify-center transition-all duration-200">
+                        <p className="text-white font-bold opacity-0 group-hover:opacity-100 text-center px-2">Hands on Hips</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'ad' && (
               <div className="mt-6">
                 <label htmlFor="product-name" className="block text-sm font-medium text-gray-300 mb-2">
