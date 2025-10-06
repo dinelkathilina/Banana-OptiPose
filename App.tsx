@@ -11,6 +11,7 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>(TABS[0].id);
   const [baseImage, setBaseImage] = useState<UploadedFile | null>(null);
   const [styleImage, setStyleImage] = useState<UploadedFile | null>(null);
+  const [productName, setProductName] = useState<string>('');
   const [outputImage, setOutputImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,13 +23,20 @@ const App: React.FC = () => {
       setError('Please upload all required images.');
       return;
     }
+    if (activeTab === 'ad' && !productName.trim()) {
+      setError('Please enter a product name.');
+      return;
+    }
     
     setIsLoading(true);
     setError(null);
     setOutputImage(null);
 
     try {
-      const prompt = PROMPTS[activeTab];
+      let prompt = PROMPTS[activeTab];
+      if (activeTab === 'ad') {
+        prompt = prompt.replace('[PRODUCT NAME HERE]', productName);
+      }
       const result = await generateImage(baseImage, styleImage, prompt);
       setOutputImage(result);
     } catch (err) {
@@ -46,9 +54,10 @@ const App: React.FC = () => {
     setOutputImage(null);
     setError(null);
     setIsLoading(false);
+    setProductName('');
   }
 
-  const isGenerateDisabled = isLoading || !baseImage || (activeTabData.uploader2Title && !styleImage);
+  const isGenerateDisabled = isLoading || !baseImage || (activeTabData.uploader2Title && !styleImage) || (activeTab === 'ad' && !productName.trim());
 
   return (
     <div className="min-h-screen bg-brand-dark text-white font-sans antialiased">
@@ -72,6 +81,23 @@ const App: React.FC = () => {
                 />
               )}
             </div>
+            
+            {activeTab === 'ad' && (
+              <div className="mt-6">
+                <label htmlFor="product-name" className="block text-sm font-medium text-gray-300 mb-2">
+                  Product Name
+                </label>
+                <input
+                  type="text"
+                  id="product-name"
+                  value={productName}
+                  onChange={(e) => setProductName(e.target.value)}
+                  placeholder="e.g., Quantum Sneakers"
+                  className="w-full bg-brand-gray-light border border-gray-600 text-white rounded-lg p-3 focus:ring-brand-yellow focus:border-brand-yellow transition-colors"
+                  aria-required="true"
+                />
+              </div>
+            )}
 
             <div className="mt-8 text-center">
               <button
