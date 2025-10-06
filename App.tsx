@@ -115,7 +115,7 @@ const App: React.FC = () => {
             
             {activeTab === 'pose' && (
               <div className="mt-8">
-                <h3 className="text-lg font-semibold text-center text-gray-300 mb-4">Or Try a Quick Pose</h3>
+                <h3 className="text-lg font-semibold text-center text-gray-300 mb-4">Try a Quick Pose</h3>
                 <div className="flex justify-center flex-wrap gap-4">
                   <PoseButton prompt={QUICK_POSE_PROMPTS.HANDS_ON_HIPS} label="Hands on Hips" />
                   <PoseButton prompt={QUICK_POSE_PROMPTS.ARMS_FOLDED} label="Arms Folded Behind Back" />
@@ -143,15 +143,17 @@ const App: React.FC = () => {
               </div>
             )}
 
-            <div className="mt-8 text-center">
-              <button
-                onClick={handleGenerate}
-                disabled={isGenerateDisabled}
-                className="w-full md:w-1/2 lg:w-1/3 bg-brand-yellow text-brand-dark font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:bg-yellow-300 disabled:bg-gray-500 disabled:cursor-not-allowed disabled:shadow-none"
-              >
-                {isLoading ? 'Generating...' : 'Generate'}
-              </button>
-            </div>
+            {activeTab !== 'pose' && (
+              <div className="mt-8 text-center">
+                <button
+                  onClick={handleGenerate}
+                  disabled={isGenerateDisabled}
+                  className="w-full md:w-1/2 lg:w-1/3 bg-brand-yellow text-brand-dark font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:bg-yellow-300 disabled:bg-gray-500 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                  {isLoading ? 'Generating...' : 'Generate'}
+                </button>
+              </div>
+            )}
           </div>
           
           {error && (

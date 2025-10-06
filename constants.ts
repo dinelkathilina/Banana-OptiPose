@@ -5,7 +5,6 @@ export const TABS: Tab[] = [
     id: 'pose',
     label: 'Pose',
     uploader1Title: 'Base Image (Person)',
-    uploader2Title: 'Style/Reference Image (Pose)',
   },
   {
     id: 'product',
