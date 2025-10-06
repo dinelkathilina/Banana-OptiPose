@@ -3,7 +3,7 @@ import { Header } from './components/Header';
 import { Tabs } from './components/Tabs';
 import { ImageUploader } from './components/ImageUploader';
 import { OutputDisplay } from './components/OutputDisplay';
-import { TABS, PROMPTS, QUICK_POSE_PROMPTS, HANDS_ON_HIPS_IMAGE_B64 } from './constants';
+import { TABS, PROMPTS, QUICK_POSE_PROMPTS } from './constants';
 import { TabId, UploadedFile } from './types';
 import { generateImage } from './services/geminiService';
 
@@ -80,6 +80,16 @@ const App: React.FC = () => {
 
   const isGenerateDisabled = isLoading || !baseImage || (activeTabData.uploader2Title && !styleImage) || (activeTab === 'ad' && !productName.trim());
 
+  const PoseButton: React.FC<{ prompt: string; label: string }> = ({ prompt, label }) => (
+    <button
+      onClick={() => handlePoseButtonClick(prompt)}
+      disabled={!baseImage || isLoading}
+      className="bg-brand-gray-light border border-gray-600 text-gray-200 font-semibold py-2 px-4 rounded-lg transition-colors duration-200 hover:border-brand-yellow focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-600"
+    >
+      {label}
+    </button>
+  );
+
   return (
     <div className="min-h-screen bg-brand-dark text-white font-sans antialiased">
       <div className="container mx-auto p-4 md:p-8">
@@ -106,20 +116,12 @@ const App: React.FC = () => {
             {activeTab === 'pose' && (
               <div className="mt-8">
                 <h3 className="text-lg font-semibold text-center text-gray-300 mb-4">Or Try a Quick Pose</h3>
-                <div className="flex justify-center gap-4">
-                  <div className="relative group">
-                    <button
-                      onClick={() => handlePoseButtonClick(QUICK_POSE_PROMPTS.HANDS_ON_HIPS)}
-                      disabled={!baseImage || isLoading}
-                      className="rounded-lg overflow-hidden border-2 border-transparent hover:border-brand-yellow focus:border-brand-yellow focus:outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-transparent"
-                      aria-label="Apply Hands on Hips pose"
-                    >
-                      <img src={HANDS_ON_HIPS_IMAGE_B64} alt="Man with hands on hips" className="w-32 h-40 object-cover" />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 flex items-center justify-center transition-all duration-200">
-                        <p className="text-white font-bold opacity-0 group-hover:opacity-100 text-center px-2">Hands on Hips</p>
-                      </div>
-                    </button>
-                  </div>
+                <div className="flex justify-center flex-wrap gap-4">
+                  <PoseButton prompt={QUICK_POSE_PROMPTS.HANDS_ON_HIPS} label="Hands on Hips" />
+                  <PoseButton prompt={QUICK_POSE_PROMPTS.ARMS_FOLDED} label="Arms Folded Behind Back" />
+                  <PoseButton prompt={QUICK_POSE_PROMPTS.ONE_HAND_POCKET} label="One Hand in Pocket" />
+                  <PoseButton prompt={QUICK_POSE_PROMPTS.POINTING_FINGER} label="Pointing Finger" />
+                  <PoseButton prompt={QUICK_POSE_PROMPTS.ARMS_RAISED} label="Arms Raised" />
                 </div>
               </div>
             )}
