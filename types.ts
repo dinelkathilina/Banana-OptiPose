@@ -1,9 +1,9 @@
-export type TabId = 'pose' | 'product' | 'ad';
+export type TabId = 'pose' | 'carousel' | 'ad';
 
 export interface Tab {
   id: TabId;
   label: string;
-  uploader1Title: string;
+  uploader1Title?: string;
   uploader2Title?: string;
 }
 
@@ -12,4 +12,10 @@ export interface UploadedFile {
   type: string;
   base64: string;
   preview: string;
+}
+
+export interface CarouselSlide {
+  imageUrl: string;
+  title: string;
+  body: string;
 }

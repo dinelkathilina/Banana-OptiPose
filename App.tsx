@@ -3,9 +3,9 @@ import { Header } from './components/Header';
 import { Tabs } from './components/Tabs';
 import { ImageUploader } from './components/ImageUploader';
 import { OutputDisplay } from './components/OutputDisplay';
-import { TABS, PROMPTS, QUICK_POSE_PROMPTS } from './constants';
-import { TabId, UploadedFile } from './types';
-import { generateImage } from './services/geminiService';
+import { TABS, PROMPTS, QUICK_POSE_PROMPTS, PAGE_OPTIONS, ILLUSTRATION_STYLES } from './constants';
+import { TabId, UploadedFile, CarouselSlide } from './types';
+import { generateImage, generateCarouselImages } from './services/geminiService';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>(TABS[0].id);
@@ -13,13 +13,24 @@ const App: React.FC = () => {
   const [styleImage, setStyleImage] = useState<UploadedFile | null>(null);
   const [productName, setProductName] = useState<string>('');
   const [outputImage, setOutputImage] = useState<string | null>(null);
+  const [outputImages, setOutputImages] = useState<CarouselSlide[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Carousel-specific state
+  const [carouselIdea, setCarouselIdea] = useState<string>('');
+  const [numPages, setNumPages] = useState<number>(PAGE_OPTIONS[1]); // Default to 3 pages
+  const [illustrationStyle, setIllustrationStyle] = useState<string>(ILLUSTRATION_STYLES[0]);
 
   const activeTabData = useMemo(() => TABS.find(tab => tab.id === activeTab)!, [activeTab]);
 
   const handleGenerate = async () => {
-    if (!baseImage || (activeTabData.uploader2Title && !styleImage)) {
+    // Validation
+    if (activeTabData.uploader1Title && !baseImage) {
+      setError('Please upload a base image.');
+      return;
+    }
+    if (activeTabData.uploader2Title && !styleImage) {
       setError('Please upload all required images.');
       return;
     }
@@ -27,18 +38,28 @@ const App: React.FC = () => {
       setError('Please enter a product name.');
       return;
     }
+    if (activeTab === 'carousel' && !carouselIdea.trim()) {
+      setError('Please enter your idea for the carousel post.');
+      return;
+    }
     
     setIsLoading(true);
     setError(null);
     setOutputImage(null);
+    setOutputImages(null);
 
     try {
-      let prompt = PROMPTS[activeTab];
-      if (activeTab === 'ad') {
-        prompt = prompt.replace('[PRODUCT NAME HERE]', productName);
+      if (activeTab === 'carousel') {
+        const results = await generateCarouselImages(carouselIdea, numPages, illustrationStyle, PROMPTS.carousel);
+        setOutputImages(results);
+      } else {
+        let prompt = PROMPTS[activeTab];
+        if (activeTab === 'ad') {
+          prompt = prompt.replace('[PRODUCT NAME HERE]', productName);
+        }
+        const result = await generateImage(baseImage!, activeTabData.uploader2Title ? styleImage : null, prompt);
+        setOutputImage(result);
       }
-      const result = await generateImage(baseImage, styleImage, prompt);
-      setOutputImage(result);
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred. Please try again.');
@@ -56,6 +77,7 @@ const App: React.FC = () => {
     setIsLoading(true);
     setError(null);
     setOutputImage(null);
+    setOutputImages(null);
 
     try {
       const result = await generateImage(baseImage, null, prompt);
@@ -73,12 +95,20 @@ const App: React.FC = () => {
     setBaseImage(null);
     setStyleImage(null);
     setOutputImage(null);
+    setOutputImages(null);
     setError(null);
     setIsLoading(false);
     setProductName('');
+    setCarouselIdea('');
+    setNumPages(PAGE_OPTIONS[1]);
+    setIllustrationStyle(ILLUSTRATION_STYLES[0]);
   }
 
-  const isGenerateDisabled = isLoading || !baseImage || (activeTabData.uploader2Title && !styleImage) || (activeTab === 'ad' && !productName.trim());
+  const isGenerateDisabled = isLoading ||
+    (activeTab !== 'carousel' && activeTabData.uploader1Title && !baseImage) ||
+    (activeTabData.uploader2Title && !styleImage) ||
+    (activeTab === 'ad' && !productName.trim()) ||
+    (activeTab === 'carousel' && !carouselIdea.trim());
 
   const PoseButton: React.FC<{ prompt: string; label: string }> = ({ prompt, label }) => (
     <button
@@ -98,20 +128,22 @@ const App: React.FC = () => {
           <Tabs tabs={TABS} activeTab={activeTab} onTabChange={handleTabChange} />
 
           <div className="mt-8 p-6 bg-brand-gray rounded-lg shadow-2xl">
-            <div className={`grid grid-cols-1 ${activeTabData.uploader2Title ? 'lg:grid-cols-2' : ''} gap-8`}>
-              <ImageUploader
-                title={activeTabData.uploader1Title}
-                onFileSelect={setBaseImage}
-                key={`${activeTab}-1`}
-              />
-              {activeTabData.uploader2Title && (
+            {activeTab !== 'carousel' && (
+              <div className={`grid grid-cols-1 ${activeTabData.uploader2Title ? 'lg:grid-cols-2' : ''} gap-8`}>
                 <ImageUploader
-                  title={activeTabData.uploader2Title}
-                  onFileSelect={setStyleImage}
-                  key={`${activeTab}-2`}
+                  title={activeTabData.uploader1Title!}
+                  onFileSelect={setBaseImage}
+                  key={`${activeTab}-1`}
                 />
-              )}
-            </div>
+                {activeTabData.uploader2Title && (
+                  <ImageUploader
+                    title={activeTabData.uploader2Title}
+                    onFileSelect={setStyleImage}
+                    key={`${activeTab}-2`}
+                  />
+                )}
+              </div>
+            )}
             
             {activeTab === 'pose' && (
               <div className="mt-8">
@@ -122,6 +154,53 @@ const App: React.FC = () => {
                   <PoseButton prompt={QUICK_POSE_PROMPTS.ONE_HAND_POCKET} label="One Hand in Pocket" />
                   <PoseButton prompt={QUICK_POSE_PROMPTS.POINTING_FINGER} label="Pointing Finger" />
                   <PoseButton prompt={QUICK_POSE_PROMPTS.ARMS_RAISED} label="Arms Raised" />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'carousel' && (
+              <div className="space-y-6">
+                <div>
+                  <label htmlFor="carousel-idea" className="block text-sm font-medium text-gray-300 mb-2">
+                    Carousel Post Idea
+                  </label>
+                  <textarea
+                    id="carousel-idea"
+                    value={carouselIdea}
+                    onChange={(e) => setCarouselIdea(e.target.value)}
+                    placeholder="e.g., 5 tips for better sleep"
+                    className="w-full bg-brand-gray-light border border-gray-600 text-white rounded-lg p-3 focus:ring-brand-yellow focus:border-brand-yellow transition-colors"
+                    rows={4}
+                    aria-required="true"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="num-pages" className="block text-sm font-medium text-gray-300 mb-2">
+                      Number of Pages
+                    </label>
+                    <select 
+                      id="num-pages" 
+                      value={numPages}
+                      onChange={(e) => setNumPages(Number(e.target.value))}
+                      className="w-full bg-brand-gray-light border border-gray-600 text-white rounded-lg p-3 focus:ring-brand-yellow focus:border-brand-yellow transition-colors"
+                    >
+                      {PAGE_OPTIONS.map(num => <option key={num} value={num}>{num}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="illustration-style" className="block text-sm font-medium text-gray-300 mb-2">
+                      Illustration Style
+                    </label>
+                    <select 
+                      id="illustration-style" 
+                      value={illustrationStyle}
+                      onChange={(e) => setIllustrationStyle(e.target.value)}
+                      className="w-full bg-brand-gray-light border border-gray-600 text-white rounded-lg p-3 focus:ring-brand-yellow focus:border-brand-yellow transition-colors"
+                    >
+                      {ILLUSTRATION_STYLES.map(style => <option key={style} value={style}>{style}</option>)}
+                    </select>
+                  </div>
                 </div>
               </div>
             )}
@@ -162,7 +241,7 @@ const App: React.FC = () => {
             </div>
           )}
 
-          <OutputDisplay outputImage={outputImage} isLoading={isLoading} />
+          <OutputDisplay outputImage={outputImage} outputImages={outputImages} isLoading={isLoading} />
         </main>
       </div>
     </div>
