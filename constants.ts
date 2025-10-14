@@ -23,14 +23,10 @@ export const PROMPTS: Record<TabId, string> = {
 The user wants a carousel with [NUM_PAGES] pages in a '[STYLE]' 2D illustration style.
 The core idea is: '[CAROUSEL_IDEA]'.
 
-Break down the idea into [NUM_PAGES] sequential, coherent parts. For each part, create:
-1.  A short, engaging 'title' (max 10 words).
-2.  A concise 'body' text (max 30 words) that elaborates on the title.
-3.  A detailed 'image_prompt' for a text-to-image AI to generate the visual.
+Break down the idea into [NUM_PAGES] sequential, coherent image prompts for a text-to-image AI. For each part, create a detailed 'image_prompt'.
 
 Each 'image_prompt' must adhere to these rules:
 - It must explicitly include the style: '[STYLE] 2D illustration with graphics'.
-- It must instruct the image model to leave ample and aesthetically pleasing negative space for the title and body text to be overlaid legibly.
 - For all prompts EXCEPT the last one, it must include instructions to draw a subtle, stylized 'swipe right' arrow graphic within the illustration itself. The arrow's design must match the '[STYLE]' and be placed in a consistent location like the bottom-right corner.
 - The prompt for the FINAL slide must NOT include an arrow. It can optionally include a call-to-action or concluding graphic.`,
   ad: `Magical ultra-realistic commercial photograph of [PRODUCT NAME HERE] as the absolute hero, cinematic environment that automatically adapts to the product’s nature, high Kelvin lighting for pure white tones without yellow, hyper-detailed textures with insane clarity, extreme sharpness that reveals every micro-detail, HDR and upscale effect for flawless premium look, dramatic studio lighting with rim light and soft cinematic shadows, powerful hero composition that highlights the product, atmosphere morphs perfectly to fit the product identity, one-word slogan glowing in a bold creative way, brand logo placed in an epic hero spot, surreal upscale touch that makes it feel larger than life, social-media optimized, iconic and unforgettable`,

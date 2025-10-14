@@ -16,6 +16,4 @@ export interface UploadedFile {
 
 export interface CarouselSlide {
   imageUrl: string;
-  title: string;
-  body: string;
 }

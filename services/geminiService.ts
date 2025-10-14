@@ -59,8 +59,6 @@ export async function generateImage(
 }
 
 interface CarouselPagePlan {
-  title: string;
-  body: string;
   image_prompt: string;
 }
 
@@ -89,20 +87,12 @@ export async function generateCarouselImages(
           items: {
             type: Type.OBJECT,
             properties: {
-              title: {
-                type: Type.STRING,
-                description: 'A short, engaging title for the slide.'
-              },
-              body: {
-                type: Type.STRING,
-                description: 'Concise body text that elaborates on the title.'
-              },
               image_prompt: {
                 type: Type.STRING,
                 description: 'A detailed prompt for a text-to-image AI to generate the visual for this page.'
               },
             },
-            required: ['title', 'body', 'image_prompt']
+            required: ['image_prompt']
           },
         },
       },
@@ -136,13 +126,11 @@ export async function generateCarouselImages(
 
     const imageResponses = await Promise.all(imageGenerationPromises);
 
-    const slides: CarouselSlide[] = imageResponses.map((response, index) => {
+    const slides: CarouselSlide[] = imageResponses.map((response) => {
       if (response.generatedImages && response.generatedImages.length > 0) {
         const base64ImageBytes: string = response.generatedImages[0].image.imageBytes;
         return {
           imageUrl: `data:image/jpeg;base64,${base64ImageBytes}`,
-          title: carouselPlan[index].title,
-          body: carouselPlan[index].body,
         };
       }
       throw new Error('An image could not be generated for one of the pages.');

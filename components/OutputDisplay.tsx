@@ -25,7 +25,7 @@ const Placeholder: React.FC = () => (
 export const OutputDisplay: React.FC<OutputDisplayProps> = ({ outputImage, outputImages, isLoading }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const slides = outputImages || (outputImage ? [{ imageUrl: outputImage, title: '', body: '' }] : []);
+  const slides = outputImages || (outputImage ? [{ imageUrl: outputImage }] : []);
 
   useEffect(() => {
     // Reset index when images change
@@ -50,7 +50,6 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ outputImage, outpu
     }
 
     const currentSlide = slides[currentIndex];
-    const isCarousel = slides.length > 1 && !!outputImages;
 
     return (
       <div className="relative group aspect-square">
@@ -60,13 +59,6 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ outputImage, outpu
           className="w-full h-full object-cover rounded-lg shadow-2xl bg-brand-gray" 
         />
         
-        {isCarousel && currentSlide.title && (
-          <div className="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-black/70 via-black/40 to-transparent rounded-lg">
-            <h3 className="text-2xl font-bold text-white shadow-lg">{currentSlide.title}</h3>
-            <p className="text-white/90 mt-2 text-base shadow-lg">{currentSlide.body}</p>
-          </div>
-        )}
-
         {slides.length > 1 && (
           <>
             <button 
